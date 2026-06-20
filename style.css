@@ -906,35 +906,170 @@ tr:hover .table-actions { opacity: 1; }
 .dot-completed   { background: var(--text-muted); }
 .dot-lost        { background: var(--danger); }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-  .sidebar {
-    width: 64px;
-  }
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 200;
+  padding: 0 4px env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -2px 12px rgba(0,0,0,.07);
+  justify-content: space-around;
+  align-items: center;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 44px;
+  text-align: center;
+  transition: color var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item svg { width: 22px; height: 22px; }
+.mobile-nav-item.active { color: var(--primary); }
+
+/* ===== RESPONSIVE — TABLET (sidebar collapses to icons) ===== */
+@media (max-width: 900px) and (min-width: 769px) {
+  .sidebar { width: 64px; }
 
   .sidebar-logo .logo-text,
   .sidebar-logo .logo-sub,
   .nav-link span,
   .nav-section-label,
-  .sidebar-footer {
-    display: none;
-  }
+  .sidebar-footer { display: none; }
 
   .sidebar-logo .logo-mark { justify-content: center; }
   .nav-link { justify-content: center; padding: 10px; }
   .nav-link .nav-icon { width: 20px; height: 20px; opacity: 1; }
   .main { margin-left: 64px; max-width: calc(100% - 64px); }
-
-  .kanban-board { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-  .budget-grid { grid-template-columns: 1fr; }
-  .two-col { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 600px) {
-  .page-content { padding: 16px; }
-  .page-header  { padding: 14px 16px; }
-  .notes-grid   { grid-template-columns: 1fr; }
-  .stats-grid   { grid-template-columns: 1fr; }
+/* ===== RESPONSIVE — MOBILE ===== */
+@media (max-width: 768px) {
+  /* Hide desktop sidebar, show bottom nav */
+  .sidebar { display: none; }
+  .mobile-nav { display: flex; }
+
+  .main {
+    margin-left: 0 !important;
+    max-width: 100% !important;
+    padding-bottom: 64px;
+  }
+
+  /* Page header */
+  .page-header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .page-header h1 { font-size: 16px; }
+  .header-sub { display: none; }
+  .header-actions { gap: 8px; }
+
+  /* Content */
+  .page-content { padding: 14px 16px; }
+
+  /* Stat cards — 2 cols */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .stat-card { padding: 14px 14px; }
+  .stat-card .stat-value { font-size: 20px; }
+  .stat-card .stat-icon { width: 30px; height: 30px; margin-bottom: 8px; }
+  .stat-card .stat-sub { font-size: 11px; }
+
+  /* Cards */
+  .card-body { padding: 14px; }
+  .card-header { padding: 12px 14px; }
+
+  /* Kanban — horizontal scroll (don't stack, allows quick switching) */
+  .kanban-board {
+    grid-template-columns: unset !important;
+    display: flex !important;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .kanban-column {
+    min-width: 270px;
+    max-width: 290px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  /* Notes */
+  .notes-grid { grid-template-columns: 1fr; }
+
+  /* Budget */
+  .budget-grid { grid-template-columns: 1fr; }
+
+  /* Layouts */
+  .two-col { grid-template-columns: 1fr; }
+  .three-col { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+  .form-row { grid-template-columns: 1fr; }
+
+  /* Modal — bottom sheet */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh;
+    transform: translateY(24px);
+  }
+  .modal-overlay.show .modal { transform: translateY(0); }
+
+  /* Toolbar */
+  .toolbar { gap: 8px; }
+  .search-box { min-width: 100%; order: -1; }
+  .filter-select { flex: 1; font-size: 13px; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  th, td { white-space: nowrap; }
+
+  /* Touch-friendly minimum targets */
+  .btn { min-height: 40px; }
+  .btn-sm { min-height: 34px; }
+  .btn-icon { min-height: 36px; min-width: 36px; }
+  .form-control { min-height: 42px; font-size: 16px; } /* 16px prevents iOS zoom */
+  select.form-control { font-size: 16px; }
+
+  /* View toggle */
+  .view-toggle button { padding: 6px 10px; font-size: 12.5px; }
+
+  /* Detail */
+  .detail-header { flex-wrap: wrap; }
+  .detail-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .detail-tab { padding: 7px 14px; font-size: 12.5px; }
+}
+
+@media (max-width: 420px) {
+  .stats-grid { gap: 8px; }
+  .stat-card .stat-value { font-size: 18px; }
+  .stat-card .stat-label { font-size: 10px; }
+  .kanban-column { min-width: 250px; }
+  .page-header h1 { font-size: 15px; }
 }

@@ -321,7 +321,27 @@
   function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
+  checkConnection();
   loadDashboard();
 </script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <a href="index.html" class="mobile-nav-item active">
+    <i data-lucide="layout-dashboard"></i><span>Home</span>
+  </a>
+  <a href="clients.html" class="mobile-nav-item">
+    <i data-lucide="users"></i><span>Clients</span>
+  </a>
+  <a href="tasks.html" class="mobile-nav-item">
+    <i data-lucide="check-square"></i><span>Tasks</span>
+  </a>
+  <a href="notes.html" class="mobile-nav-item">
+    <i data-lucide="file-text"></i><span>Notes</span>
+  </a>
+  <a href="budget.html" class="mobile-nav-item">
+    <i data-lucide="wallet"></i><span>Budget</span>
+  </a>
+</nav>
 </body>
 </html>
