@@ -161,7 +161,6 @@
 <script>
   lucide.createIcons();
 
-  // Date label
   document.getElementById('dateLabel').textContent = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
@@ -214,15 +213,13 @@
       <div class="stat-card">
         <div class="stat-icon green"><i data-lucide="trending-up" style="width:18px;height:18px;"></i></div>
         <div class="stat-label">BDT Balance</div>
-        <div class="stat-value" style="font-size:20px;color:${bdt_bal>=0?'var(--success)':'var(--danger)'};">
-          ${bdt_bal>=0?'+':''}৳${Math.abs(bdt_bal).toLocaleString()}
+        <div class="stat-value" style="font-size:20px;color:${bdt_bal>=0?'var(--success)':'var(--danger)'};">                ${bdt_bal>=0?'+':''}৳${Math.abs(bdt_bal).toLocaleString()}
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon indigo"><i data-lucide="dollar-sign" style="width:18px;height:18px;"></i></div>
         <div class="stat-label">USD Balance</div>
-        <div class="stat-value" style="font-size:20px;color:${usd_bal>=0?'var(--success)':'var(--danger)'};">
-          ${usd_bal>=0?'+':''}$${Math.abs(usd_bal).toLocaleString()}
+        <div class="stat-value" style="font-size:20px;color:${usd_bal>=0?'var(--success)':'var(--danger)'};">          ${usd_bal>=0?'+':''}$${Math.abs(usd_bal).toLocaleString()}
         </div>
       </div>
     `;
@@ -249,8 +246,7 @@
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
           <span class="badge badge-${t.priority}">${capitalize(t.priority)}</span>
-          <span style="font-size:12px;font-weight:600;color:${isOD?'var(--danger)':'var(--warning)'};">
-            ${isOD ? 'Overdue' : 'Today'}: ${t.due_date}
+          <span style="font-size:12px;font-weight:600;color:${isOD?'var(--danger)':'var(--warning)'};">            ${isOD ? 'Overdue' : 'Today'}: ${t.due_date}
           </span>
         </div>
       </div>`;
@@ -310,18 +306,36 @@
           <div class="fw-600" style="font-size:13.5px;">${escHtml(e.category || capitalize(e.type))}</div>
           <div class="text-sm text-muted">${e.date || '—'}</div>
         </div>
-        <span style="font-size:14px;font-weight:700;color:${e.type==='income'?'var(--success)':'var(--danger)'};">
-          ${e.type==='income'?'+':'-'}${e.currency==='BDT'?'৳':'$'}${(+e.amount).toLocaleString()}
+        <span style="font-size:14px;font-weight:700;color:${e.type==='income'?'var(--success)':'var(--danger)'};">          ${e.type==='income'?'+':'-'}${e.currency==='BDT'?'৳':'$'}${(+e.amount).toLocaleString()}
         </span>
       </div>
     `).join('');
   }
 
-  // ===== HELPERS =====
   function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
+  checkConnection();
   loadDashboard();
 </script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <a href="index.html" class="mobile-nav-item active">
+    <i data-lucide="layout-dashboard"></i><span>Home</span>
+  </a>
+  <a href="clients.html" class="mobile-nav-item">
+    <i data-lucide="users"></i><span>Clients</span>
+  </a>
+  <a href="tasks.html" class="mobile-nav-item">
+    <i data-lucide="check-square"></i><span>Tasks</span>
+  </a>
+  <a href="notes.html" class="mobile-nav-item">
+    <i data-lucide="file-text"></i><span>Notes</span>
+  </a>
+  <a href="budget.html" class="mobile-nav-item">
+    <i data-lucide="wallet"></i><span>Budget</span>
+  </a>
+</nav>
 </body>
 </html>
