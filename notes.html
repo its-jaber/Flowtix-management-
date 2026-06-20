@@ -10,103 +10,19 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
-    .note-editor {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 500;
-      background: var(--bg);
-      flex-direction: column;
-    }
-    .note-editor.show { display: flex; }
-    .editor-toolbar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .editor-body {
-      flex: 1;
-      padding: 32px;
-      max-width: 800px;
-      margin: 0 auto;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .editor-title {
-      font-size: 24px;
-      font-weight: 700;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font-family: inherit;
-      width: 100%;
-    }
-    .editor-title::placeholder { color: var(--text-light); }
-    .editor-content {
-      flex: 1;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 15px;
-      line-height: 1.7;
-      resize: none;
-      min-height: 400px;
-    }
-    .editor-content::placeholder { color: var(--text-light); }
-    .editor-meta {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .tag-input-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 6px 10px;
-      min-width: 200px;
-    }
-    .tag-input {
-      border: none;
-      outline: none;
-      background: transparent;
-      font-size: 13px;
-      font-family: inherit;
-      color: var(--text);
-      min-width: 80px;
-    }
-    .tag-chip-removable {
-      background: var(--primary-light);
-      color: var(--primary);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 6px 2px 8px;
-      border-radius: 100px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .tag-chip-removable button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--primary);
-      padding: 0;
-      display: flex;
-      align-items: center;
-    }
+    .note-editor { display:none; position:fixed; inset:0; z-index:500; background:var(--bg); flex-direction:column; }
+    .note-editor.show { display:flex; }
+    .editor-toolbar { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; gap:12px; }
+    .editor-body { flex:1; padding:32px; max-width:800px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:16px; }
+    .editor-title { font-size:24px; font-weight:700; border:none; outline:none; background:transparent; color:var(--text); font-family:inherit; width:100%; }
+    .editor-title::placeholder { color:var(--text-light); }
+    .editor-content { flex:1; border:none; outline:none; background:transparent; color:var(--text); font-family:inherit; font-size:15px; line-height:1.7; resize:none; min-height:400px; }
+    .editor-content::placeholder { color:var(--text-light); }
+    .editor-meta { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .tag-input-wrap { display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px; min-width:200px; }
+    .tag-input { border:none; outline:none; background:transparent; font-size:13px; font-family:inherit; color:var(--text); min-width:80px; }
+    .tag-chip-removable { background:var(--primary-light); color:var(--primary); font-size:11px; font-weight:600; padding:2px 6px 2px 8px; border-radius:100px; display:flex; align-items:center; gap:4px; }
+    .tag-chip-removable button { background:none; border:none; cursor:pointer; color:var(--primary); padding:0; display:flex; align-items:center; }
   </style>
 </head>
 <body>
@@ -116,10 +32,7 @@
   <div class="sidebar-logo">
     <div class="logo-mark">
       <div class="logo-icon"><i data-lucide="zap" style="width:18px;height:18px;"></i></div>
-      <div>
-        <div class="logo-text">Flowtix</div>
-        <div class="logo-sub">Command Center</div>
-      </div>
+      <div><div class="logo-text">Flowtix</div><div class="logo-sub">Command Center</div></div>
     </div>
   </div>
   <nav class="sidebar-nav">
@@ -136,55 +49,33 @@
 <!-- MAIN -->
 <div class="main">
   <div class="page-header">
-    <div>
-      <h1>Notes</h1>
-      <div class="header-sub">Capture and organize your thoughts</div>
-    </div>
+    <div><h1>Notes</h1><div class="header-sub">Capture and organize your thoughts</div></div>
     <div class="header-actions">
-      <button class="btn btn-primary" onclick="newNote()">
-        <i data-lucide="plus" style="width:15px;height:15px;"></i> New Note
-      </button>
+      <button class="btn btn-primary" onclick="newNote()"><i data-lucide="plus" style="width:15px;height:15px;"></i> New Note</button>
     </div>
   </div>
-
   <div class="page-content">
     <div class="toolbar">
-      <div class="search-box">
-        <i data-lucide="search" class="search-icon"></i>
-        <input class="form-control" type="text" id="searchInput" placeholder="Search notes…" oninput="filterNotes()" />
-      </div>
-      <select class="filter-select" id="tagFilter" onchange="filterNotes()">
-        <option value="">All Tags</option>
-      </select>
-      <select class="filter-select" id="clientFilter" onchange="filterNotes()">
-        <option value="">All Clients</option>
-      </select>
+      <div class="search-box"><i data-lucide="search" class="search-icon"></i><input class="form-control" type="text" id="searchInput" placeholder="Search notes…" oninput="filterNotes()" /></div>
+      <select class="filter-select" id="tagFilter" onchange="filterNotes()"><option value="">All Tags</option></select>
+      <select class="filter-select" id="clientFilter" onchange="filterNotes()"><option value="">All Clients</option></select>
       <select class="filter-select" id="pinnedFilter" onchange="filterNotes()">
         <option value="">All Notes</option>
         <option value="1">Pinned Only</option>
       </select>
     </div>
-
     <div id="notesGrid" class="notes-grid"></div>
   </div>
 </div>
 
-<!-- NOTE EDITOR (full-screen) -->
+<!-- NOTE EDITOR -->
 <div class="note-editor" id="noteEditor">
   <div class="editor-toolbar">
-    <button class="btn btn-secondary btn-sm" onclick="closeEditor()">
-      <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back
-    </button>
-    <button class="btn btn-ghost btn-sm" id="pinBtn" onclick="togglePin()">
-      <i data-lucide="pin" style="width:14px;height:14px;"></i> <span id="pinLabel">Pin</span>
-    </button>
+    <button class="btn btn-secondary btn-sm" onclick="closeEditor()"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back</button>
+    <button class="btn btn-ghost btn-sm" id="pinBtn" onclick="togglePin()"><i data-lucide="pin" style="width:14px;height:14px;"></i> <span id="pinLabel">Pin</span></button>
     <div style="margin-left:auto;display:flex;gap:8px;">
-      <button class="btn btn-danger btn-sm" id="deleteNoteBtn" onclick="deleteCurrentNote()" style="display:none;">
-        <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
-      </button>
-      <button class="btn btn-primary btn-sm" onclick="saveNote()">
-        <i data-lucide="save" style="width:14px;height:14px;"></i> Save
-      </button>
+      <button class="btn btn-danger btn-sm" id="deleteNoteBtn" onclick="deleteCurrentNote()" style="display:none;"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNote()"><i data-lucide="save" style="width:14px;height:14px;"></i> Save</button>
     </div>
   </div>
   <div class="editor-body">
@@ -198,9 +89,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <label style="font-size:12.5px;font-weight:600;color:var(--text-muted);">Client:</label>
-        <select class="filter-select" id="eClient" style="min-width:160px;">
-          <option value="">No client</option>
-        </select>
+        <select class="filter-select" id="eClient" style="min-width:160px;"><option value="">No client</option></select>
       </div>
     </div>
     <hr class="divider" />
@@ -215,10 +104,7 @@
 <script src="config.js"></script>
 <script>
   lucide.createIcons();
-
-  let allNotes = [];
-  let allClients = [];
-  let editorTags = [];
+  let allNotes = [], allClients = [], editorTags = [];
 
   async function init() {
     const [notesRes, clientsRes] = await Promise.all([
@@ -227,7 +113,6 @@
     ]);
     allNotes = notesRes.data || [];
     allClients = clientsRes.data || [];
-
     populateFilters();
     filterNotes();
   }
@@ -236,11 +121,9 @@
     const opts = allClients.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
     document.getElementById('clientFilter').innerHTML = '<option value="">All Clients</option>' + opts;
     document.getElementById('eClient').innerHTML = '<option value="">No client</option>' + opts;
-
     const tagSet = new Set();
-    allNotes.forEach(n => (n.tags || []).forEach(t => tagSet.add(t)));
-    const tagOpts = [...tagSet].sort().map(t => `<option value="${t}">${escHtml(t)}</option>`).join('');
-    document.getElementById('tagFilter').innerHTML = '<option value="">All Tags</option>' + tagOpts;
+    allNotes.forEach(n => (n.tags||[]).forEach(t => tagSet.add(t)));
+    document.getElementById('tagFilter').innerHTML = '<option value="">All Tags</option>' + [...tagSet].sort().map(t => `<option value="${t}">${escHtml(t)}</option>`).join('');
   }
 
   function filterNotes() {
@@ -248,45 +131,34 @@
     const tag = document.getElementById('tagFilter').value;
     const clientId = document.getElementById('clientFilter').value;
     const pinned = document.getElementById('pinnedFilter').value;
-
     const filtered = allNotes.filter(n => {
       const matchQ = !q || (n.title||'').toLowerCase().includes(q) || (n.content||'').toLowerCase().includes(q);
-      const matchT = !tag || (n.tags || []).includes(tag);
+      const matchT = !tag || (n.tags||[]).includes(tag);
       const matchC = !clientId || n.client_id === clientId;
       const matchP = !pinned || n.pinned;
       return matchQ && matchT && matchC && matchP;
     });
-
     renderGrid(filtered);
   }
 
   function renderGrid(notes) {
     const el = document.getElementById('notesGrid');
     if (!notes.length) {
-      el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
-        <i data-lucide="file-text" class="empty-icon"></i>
-        <p>No notes yet. Start writing!</p>
-        <button class="btn btn-primary btn-sm" onclick="newNote()">New Note</button>
-      </div>`;
-      lucide.createIcons();
-      return;
+      el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><i data-lucide="file-text" class="empty-icon"></i><p>No notes yet. Start writing!</p><button class="btn btn-primary btn-sm" onclick="newNote()">New Note</button></div>`;
+      lucide.createIcons(); return;
     }
     el.innerHTML = notes.map(n => `
-      <div class="note-card ${n.pinned ? 'pinned' : ''}" onclick="openNote('${n.id}')">
-        ${n.pinned ? `<div class="pin-badge"><i data-lucide="pin" style="width:14px;height:14px;"></i></div>` : ''}
-        <div class="note-title">${escHtml(n.title || 'Untitled')}</div>
-        <div class="note-preview">${escHtml(n.content || '')}</div>
-        ${(n.tags || []).length ? `<div class="note-tags">${n.tags.map(t=>`<span class="tag-chip">${escHtml(t)}</span>`).join('')}</div>` : ''}
-        <div class="note-footer">
-          <span>${n.clients ? escHtml(n.clients.name) : ''}</span>
-          <span>${fmtDate(n.updated_at)}</span>
-        </div>
+      <div class="note-card ${n.pinned?'pinned':''}" onclick="openNote('${n.id}')">
+        ${n.pinned?`<div class="pin-badge"><i data-lucide="pin" style="width:14px;height:14px;"></i></div>`:''}
+        <div class="note-title">${escHtml(n.title||'Untitled')}</div>
+        <div class="note-preview">${escHtml(n.content||'')}</div>
+        ${(n.tags||[]).length?`<div class="note-tags">${n.tags.map(t=>`<span class="tag-chip">${escHtml(t)}</span>`).join('')}</div>`:''}
+        <div class="note-footer"><span>${n.clients?escHtml(n.clients.name):''}</span><span>${fmtDate(n.updated_at)}</span></div>
       </div>
     `).join('');
     lucide.createIcons();
   }
 
-  // ===== EDITOR =====
   function newNote() {
     editorTags = [];
     document.getElementById('eId').value = '';
@@ -305,11 +177,11 @@
   function openNote(id) {
     const note = allNotes.find(n => n.id === id);
     if (!note) return;
-    editorTags = [...(note.tags || [])];
+    editorTags = [...(note.tags||[])];
     document.getElementById('eId').value = note.id;
-    document.getElementById('eTitle').value = note.title || '';
-    document.getElementById('eContent').value = note.content || '';
-    document.getElementById('eClient').value = note.client_id || '';
+    document.getElementById('eTitle').value = note.title||'';
+    document.getElementById('eContent').value = note.content||'';
+    document.getElementById('eClient').value = note.client_id||'';
     document.getElementById('ePinned').value = String(note.pinned);
     document.getElementById('pinLabel').textContent = note.pinned ? 'Unpin' : 'Pin';
     document.getElementById('pinBtn').style.color = note.pinned ? 'var(--primary)' : '';
@@ -319,9 +191,7 @@
     setTimeout(() => document.getElementById('eContent').focus(), 100);
   }
 
-  function closeEditor() {
-    document.getElementById('noteEditor').classList.remove('show');
-  }
+  function closeEditor() { document.getElementById('noteEditor').classList.remove('show'); }
 
   function togglePin() {
     const current = document.getElementById('ePinned').value === 'true';
@@ -333,7 +203,6 @@
   function renderEditorTags() {
     const wrap = document.getElementById('tagInputWrap');
     const input = document.getElementById('tagInput');
-    // Remove old chips
     wrap.querySelectorAll('.tag-chip-removable').forEach(el => el.remove());
     editorTags.forEach(tag => {
       const chip = document.createElement('span');
@@ -344,32 +213,22 @@
     lucide.createIcons();
   }
 
-  function removeTag(tag) {
-    editorTags = editorTags.filter(t => t !== tag);
-    renderEditorTags();
-  }
+  function removeTag(tag) { editorTags = editorTags.filter(t => t !== tag); renderEditorTags(); }
 
   document.getElementById('tagInput').addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const val = e.target.value.trim().replace(/,/g,'');
-      if (val && !editorTags.includes(val)) {
-        editorTags.push(val);
-        renderEditorTags();
-      }
+      if (val && !editorTags.includes(val)) { editorTags.push(val); renderEditorTags(); }
       e.target.value = '';
     }
-    if (e.key === 'Backspace' && !e.target.value && editorTags.length) {
-      editorTags.pop();
-      renderEditorTags();
-    }
+    if (e.key === 'Backspace' && !e.target.value && editorTags.length) { editorTags.pop(); renderEditorTags(); }
   });
 
   async function saveNote() {
     const id = document.getElementById('eId').value;
     const tagInput = document.getElementById('tagInput').value.trim();
     if (tagInput) { editorTags.push(tagInput); document.getElementById('tagInput').value = ''; }
-
     const payload = {
       title: document.getElementById('eTitle').value.trim() || 'Untitled',
       content: document.getElementById('eContent').value.trim() || null,
@@ -378,15 +237,10 @@
       client_id: document.getElementById('eClient').value || null,
       updated_at: new Date().toISOString()
     };
-
     let error;
-    if (id) {
-      ({ error } = await supabase.from('notes').update(payload).eq('id', id));
-    } else {
-      ({ error } = await supabase.from('notes').insert(payload));
-    }
-
-    if (error) { toast('Failed to save note', 'error'); return; }
+    if (id) ({ error } = await supabase.from('notes').update(payload).eq('id', id));
+    else ({ error } = await supabase.from('notes').insert(payload));
+    if (error) { toast('Save failed: ' + error.message, 'error'); return; }
     toast(id ? 'Note saved!' : 'Note created!', 'success');
     closeEditor();
     await init();
@@ -394,38 +248,40 @@
 
   async function deleteCurrentNote() {
     const id = document.getElementById('eId').value;
-    if (!id) return;
-    if (!confirm('Delete this note?')) return;
+    if (!id || !confirm('Delete this note?')) return;
     const { error } = await supabase.from('notes').delete().eq('id', id);
-    if (error) { toast('Failed to delete', 'error'); return; }
+    if (error) { toast('Delete failed: ' + error.message, 'error'); return; }
     toast('Note deleted', 'success');
     closeEditor();
     await init();
   }
 
-  // ===== HELPERS =====
   function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function fmtDate(d) {
-    if (!d) return '';
-    return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  }
+  function fmtDate(d) { if (!d) return ''; return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
   function toast(msg, type = 'info') {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
     t.className = `toast ${type}`;
     t.innerHTML = `<i data-lucide="${type==='success'?'check-circle':type==='error'?'alert-circle':'info'}" style="width:16px;height:16px;"></i> ${msg}`;
-    c.appendChild(t);
-    lucide.createIcons();
+    c.appendChild(t); lucide.createIcons();
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
   }
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && document.getElementById('noteEditor').classList.contains('show')) {
-      closeEditor();
-    }
+    if (e.key === 'Escape' && document.getElementById('noteEditor').classList.contains('show')) closeEditor();
   });
 
+  checkConnection();
   init();
 </script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <a href="index.html" class="mobile-nav-item"><i data-lucide="layout-dashboard"></i><span>Home</span></a>
+  <a href="clients.html" class="mobile-nav-item"><i data-lucide="users"></i><span>Clients</span></a>
+  <a href="tasks.html" class="mobile-nav-item"><i data-lucide="check-square"></i><span>Tasks</span></a>
+  <a href="notes.html" class="mobile-nav-item active"><i data-lucide="file-text"></i><span>Notes</span></a>
+  <a href="budget.html" class="mobile-nav-item"><i data-lucide="wallet"></i><span>Budget</span></a>
+</nav>
 </body>
 </html>

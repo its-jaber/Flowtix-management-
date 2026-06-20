@@ -84,27 +84,21 @@
       <div class="kanban-board">
         <div class="kanban-column">
           <div class="kanban-col-header">
-            <div class="kanban-col-title">
-              <span class="dot dot-todo"></span> Todo
-            </div>
+            <div class="kanban-col-title"><span class="dot dot-todo"></span> Todo</div>
             <span class="kanban-col-count" id="countTodo">0</span>
           </div>
           <div class="kanban-cards" id="colTodo"></div>
         </div>
         <div class="kanban-column">
           <div class="kanban-col-header">
-            <div class="kanban-col-title">
-              <span class="dot dot-in_progress"></span> In Progress
-            </div>
+            <div class="kanban-col-title"><span class="dot dot-in_progress"></span> In Progress</div>
             <span class="kanban-col-count" id="countInProgress">0</span>
           </div>
           <div class="kanban-cards" id="colInProgress"></div>
         </div>
         <div class="kanban-column">
           <div class="kanban-col-header">
-            <div class="kanban-col-title">
-              <span class="dot dot-done"></span> Done
-            </div>
+            <div class="kanban-col-title"><span class="dot dot-done"></span> Done</div>
             <span class="kanban-col-count" id="countDone">0</span>
           </div>
           <div class="kanban-cards" id="colDone"></div>
@@ -118,12 +112,7 @@
         <table>
           <thead>
             <tr>
-              <th>Title</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Due Date</th>
-              <th>Client</th>
-              <th></th>
+              <th>Title</th><th>Status</th><th>Priority</th><th>Due Date</th><th>Client</th><th></th>
             </tr>
           </thead>
           <tbody id="tasksList"></tbody>
@@ -138,9 +127,7 @@
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modalTitle">Add Task</span>
-      <button class="modal-close" onclick="closeModal()">
-        <i data-lucide="x" style="width:18px;height:18px;"></i>
-      </button>
+      <button class="modal-close" onclick="closeModal()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
     </div>
     <div class="modal-body">
       <form onsubmit="saveTask(event)">
@@ -177,9 +164,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Client</label>
-            <select class="form-control" id="fClient">
-              <option value="">No client</option>
-            </select>
+            <select class="form-control" id="fClient"><option value="">No client</option></select>
           </div>
         </div>
         <input type="hidden" id="fId" />
@@ -197,10 +182,7 @@
 <script src="config.js"></script>
 <script>
   lucide.createIcons();
-
-  let allTasks = [];
-  let allClients = [];
-  let currentView = 'kanban';
+  let allTasks = [], allClients = [], currentView = 'kanban';
 
   async function init() {
     const [tasksRes, clientsRes] = await Promise.all([
@@ -209,7 +191,6 @@
     ]);
     allTasks = tasksRes.data || [];
     allClients = clientsRes.data || [];
-
     populateClientFilters();
     filterTasks();
   }
@@ -225,7 +206,6 @@
     const priority = document.getElementById('priorityFilter').value;
     const clientId = document.getElementById('clientFilter').value;
     const status = document.getElementById('statusFilter').value;
-
     const filtered = allTasks.filter(t => {
       const matchQ = !q || t.title.toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q);
       const matchP = !priority || t.priority === priority;
@@ -233,7 +213,6 @@
       const matchS = !status || t.status === status;
       return matchQ && matchP && matchC && matchS;
     });
-
     if (currentView === 'kanban') renderKanban(filtered);
     else renderList(filtered);
   }
@@ -250,7 +229,6 @@
   function renderKanban(tasks) {
     const cols = { todo: [], in_progress: [], done: [] };
     tasks.forEach(t => cols[t.status] && cols[t.status].push(t));
-
     renderCol('colTodo', 'countTodo', cols.todo);
     renderCol('colInProgress', 'countInProgress', cols.in_progress);
     renderCol('colDone', 'countDone', cols.done);
@@ -259,10 +237,7 @@
   function renderCol(colId, countId, tasks) {
     document.getElementById(countId).textContent = tasks.length;
     const el = document.getElementById(colId);
-    if (!tasks.length) {
-      el.innerHTML = `<div style="text-align:center;padding:24px 12px;color:var(--text-light);font-size:13px;">No tasks</div>`;
-      return;
-    }
+    if (!tasks.length) { el.innerHTML = `<div style="text-align:center;padding:24px 12px;color:var(--text-light);font-size:13px;">No tasks</div>`; return; }
     el.innerHTML = tasks.map(t => `
       <div class="task-card" onclick="openModal('${t.id}')">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
@@ -271,20 +246,12 @@
         </div>
         ${t.description ? `<div style="font-size:12.5px;color:var(--text-muted);margin-bottom:8px;">${escHtml(t.description.substring(0,80))}${t.description.length>80?'…':''}</div>` : ''}
         <div class="task-card-meta">
-          ${t.due_date ? `<span class="meta-item ${isOverdue(t.due_date, t.status) ? 'overdue' : ''}">
-            <i data-lucide="calendar" style="width:11px;height:11px;"></i> ${t.due_date}
-          </span>` : ''}
-          ${t.clients ? `<span class="meta-item">
-            <i data-lucide="user" style="width:11px;height:11px;"></i> ${escHtml(t.clients.name)}
-          </span>` : ''}
+          ${t.due_date ? `<span class="meta-item ${isOverdue(t.due_date,t.status)?'overdue':''}"><i data-lucide="calendar" style="width:11px;height:11px;"></i> ${t.due_date}</span>` : ''}
+          ${t.clients ? `<span class="meta-item"><i data-lucide="user" style="width:11px;height:11px;"></i> ${escHtml(t.clients.name)}</span>` : ''}
         </div>
         <div style="display:flex;gap:6px;margin-top:10px;" onclick="event.stopPropagation()">
-          <button class="btn btn-ghost btn-icon btn-sm" onclick="openModal('${t.id}')">
-            <i data-lucide="pencil" style="width:13px;height:13px;"></i>
-          </button>
-          <button class="btn btn-danger btn-icon btn-sm" onclick="deleteTask('${t.id}')">
-            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
-          </button>
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="openModal('${t.id}')"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>
+          <button class="btn btn-danger btn-icon btn-sm" onclick="deleteTask('${t.id}')"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
         </div>
       </div>
     `).join('');
@@ -294,57 +261,40 @@
   function renderList(tasks) {
     const tbody = document.getElementById('tasksList');
     if (!tasks.length) {
-      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
-        <i data-lucide="check-square" class="empty-icon"></i>
-        <p>No tasks found.</p>
-        <button class="btn btn-primary btn-sm" onclick="openModal()">Add Task</button>
-      </div></td></tr>`;
-      lucide.createIcons();
-      return;
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i data-lucide="check-square" class="empty-icon"></i><p>No tasks found.</p><button class="btn btn-primary btn-sm" onclick="openModal()">Add Task</button></div></td></tr>`;
+      lucide.createIcons(); return;
     }
     tbody.innerHTML = tasks.map(t => `
       <tr>
-        <td>
-          <div class="fw-600">${escHtml(t.title)}</div>
-          ${t.description ? `<div class="text-sm text-muted">${escHtml(t.description.substring(0,60))}${t.description.length>60?'…':''}</div>` : ''}
-        </td>
+        <td><div class="fw-600">${escHtml(t.title)}</div>${t.description?`<div class="text-sm text-muted">${escHtml(t.description.substring(0,60))}${t.description.length>60?'…':''}</div>`:''}</td>
         <td><span class="badge badge-${t.status}">${t.status.replace('_',' ')}</span></td>
         <td><span class="badge badge-${t.priority}">${capitalize(t.priority)}</span></td>
-        <td class="${isOverdue(t.due_date, t.status) ? 'overdue' : 'text-muted'}">${t.due_date || '—'}</td>
-        <td class="text-muted">${t.clients ? escHtml(t.clients.name) : '—'}</td>
-        <td>
-          <div class="table-actions">
-            <button class="btn btn-ghost btn-icon btn-sm" onclick="openModal('${t.id}')">
-              <i data-lucide="pencil" style="width:14px;height:14px;"></i>
-            </button>
-            <button class="btn btn-danger btn-icon btn-sm" onclick="deleteTask('${t.id}')">
-              <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
-            </button>
-          </div>
-        </td>
+        <td class="${isOverdue(t.due_date,t.status)?'overdue':'text-muted'}">${t.due_date||'—'}</td>
+        <td class="text-muted">${t.clients?escHtml(t.clients.name):'—'}</td>
+        <td><div class="table-actions">
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="openModal('${t.id}')"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
+          <button class="btn btn-danger btn-icon btn-sm" onclick="deleteTask('${t.id}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+        </div></td>
       </tr>
     `).join('');
     lucide.createIcons();
   }
 
-  // ===== MODAL =====
   function openModal(id) {
     const task = id ? allTasks.find(t => t.id === id) : null;
     document.getElementById('modalTitle').textContent = task ? 'Edit Task' : 'Add Task';
     document.getElementById('fId').value = task ? task.id : '';
     document.getElementById('fTitle').value = task ? task.title : '';
-    document.getElementById('fDesc').value = task ? (task.description || '') : '';
+    document.getElementById('fDesc').value = task ? (task.description||'') : '';
     document.getElementById('fStatus').value = task ? task.status : 'todo';
     document.getElementById('fPriority').value = task ? task.priority : 'medium';
-    document.getElementById('fDue').value = task ? (task.due_date || '') : '';
-    document.getElementById('fClient').value = task ? (task.client_id || '') : '';
+    document.getElementById('fDue').value = task ? (task.due_date||'') : '';
+    document.getElementById('fClient').value = task ? (task.client_id||'') : '';
     document.getElementById('modalOverlay').classList.add('show');
     setTimeout(() => document.getElementById('fTitle').focus(), 100);
   }
 
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('show');
-  }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
 
   async function saveTask(e) {
     e && e.preventDefault();
@@ -358,14 +308,10 @@
       client_id: document.getElementById('fClient').value || null
     };
     if (!payload.title) { toast('Title is required', 'error'); return; }
-
     let error;
-    if (id) {
-      ({ error } = await supabase.from('tasks').update(payload).eq('id', id));
-    } else {
-      ({ error } = await supabase.from('tasks').insert(payload));
-    }
-    if (error) { toast('Failed to save task', 'error'); return; }
+    if (id) ({ error } = await supabase.from('tasks').update(payload).eq('id', id));
+    else ({ error } = await supabase.from('tasks').insert(payload));
+    if (error) { toast('Save failed: ' + error.message, 'error'); return; }
     toast(id ? 'Task updated!' : 'Task created!', 'success');
     closeModal();
     await init();
@@ -374,12 +320,11 @@
   async function deleteTask(id) {
     if (!confirm('Delete this task?')) return;
     const { error } = await supabase.from('tasks').delete().eq('id', id);
-    if (error) { toast('Failed to delete', 'error'); return; }
+    if (error) { toast('Delete failed: ' + error.message, 'error'); return; }
     toast('Task deleted', 'success');
     await init();
   }
 
-  // ===== HELPERS =====
   function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
   function isOverdue(due, status) {
@@ -391,8 +336,7 @@
     const t = document.createElement('div');
     t.className = `toast ${type}`;
     t.innerHTML = `<i data-lucide="${type==='success'?'check-circle':type==='error'?'alert-circle':'info'}" style="width:16px;height:16px;"></i> ${msg}`;
-    c.appendChild(t);
-    lucide.createIcons();
+    c.appendChild(t); lucide.createIcons();
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
   }
 
@@ -401,7 +345,17 @@
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+  checkConnection();
   init();
 </script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <a href="index.html" class="mobile-nav-item"><i data-lucide="layout-dashboard"></i><span>Home</span></a>
+  <a href="clients.html" class="mobile-nav-item"><i data-lucide="users"></i><span>Clients</span></a>
+  <a href="tasks.html" class="mobile-nav-item active"><i data-lucide="check-square"></i><span>Tasks</span></a>
+  <a href="notes.html" class="mobile-nav-item"><i data-lucide="file-text"></i><span>Notes</span></a>
+  <a href="budget.html" class="mobile-nav-item"><i data-lucide="wallet"></i><span>Budget</span></a>
+</nav>
 </body>
 </html>
