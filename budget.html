@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget — Flowtix Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon"><i data-lucide="zap" style="width:18px;height:18px;"></i></div>
+      <div>
+        <div class="logo-text">Flowtix</div>
+        <div class="logo-sub">Command Center</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu</div>
+    <a href="index.html" class="nav-link"><i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span></a>
+    <a href="clients.html" class="nav-link"><i data-lucide="users" class="nav-icon"></i><span>Clients</span></a>
+    <a href="tasks.html" class="nav-link"><i data-lucide="check-square" class="nav-icon"></i><span>Tasks</span></a>
+    <a href="notes.html" class="nav-link"><i data-lucide="file-text" class="nav-icon"></i><span>Notes</span></a>
+    <a href="budget.html" class="nav-link active"><i data-lucide="wallet" class="nav-icon"></i><span>Budget</span></a>
+  </nav>
+  <div class="sidebar-footer">Flowtix v1.0</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>Budget</h1>
+      <div class="header-sub">Track income and expenses</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="openModal('income')">
+        <i data-lucide="plus" style="width:15px;height:15px;"></i> Add Income
+      </button>
+      <button class="btn btn-secondary" onclick="openModal('expense')">
+        <i data-lucide="minus" style="width:15px;height:15px;"></i> Add Expense
+      </button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- BALANCE CARDS -->
+    <div class="budget-grid" id="balanceCards"></div>
+
+    <!-- FILTERS -->
+    <div class="toolbar">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input class="form-control" type="text" id="searchInput" placeholder="Search entries…" oninput="filterEntries()" />
+      </div>
+      <select class="filter-select" id="monthFilter" onchange="filterEntries()">
+        <option value="">All Months</option>
+      </select>
+      <select class="filter-select" id="clientFilter" onchange="filterEntries()">
+        <option value="">All Clients</option>
+      </select>
+      <select class="filter-select" id="typeFilter" onchange="filterEntries()">
+        <option value="">Income & Expense</option>
+        <option value="income">Income Only</option>
+        <option value="expense">Expense Only</option>
+      </select>
+      <select class="filter-select" id="currencyFilter" onchange="filterEntries()">
+        <option value="">BDT & USD</option>
+        <option value="BDT">BDT Only</option>
+        <option value="USD">USD Only</option>
+      </select>
+    </div>
+
+    <!-- ENTRIES TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Currency</th>
+            <th>Category</th>
+            <th>Client</th>
+            <th>Note</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="entriesTable"></tbody>
+      </table>
+    </div>
+
+    <!-- MONTHLY BREAKDOWN -->
+    <div style="margin-top:28px;">
+      <div class="section-title">Monthly Breakdown</div>
+      <div id="monthlyBreakdown"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add Income</span>
+      <button class="modal-close" onclick="closeModal()">
+        <i data-lucide="x" style="width:18px;height:18px;"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="saveEntry(event)">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-control" id="fType">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Amount *</label>
+            <input class="form-control" type="number" id="fAmount" min="0" step="0.01" required placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Currency</label>
+            <select class="form-control" id="fCurrency">
+              <option value="BDT">BDT (৳)</option>
+              <option value="USD">USD ($)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <input class="form-control" type="text" id="fCategory" placeholder="e.g. Design, Marketing…" list="categoryList" />
+            <datalist id="categoryList">
+              <option value="Design">
+              <option value="Development">
+              <option value="Marketing">
+              <option value="Consultation">
+              <option value="Subscription">
+              <option value="Tools">
+              <option value="Miscellaneous">
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input class="form-control" type="date" id="fDate" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Client</label>
+          <select class="form-control" id="fClient">
+            <option value="">No client</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note</label>
+          <input class="form-control" type="text" id="fNote" placeholder="Optional note…" />
+        </div>
+        <input type="hidden" id="fId" />
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEntry(event)">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="config.js"></script>
+<script>
+  lucide.createIcons();
+
+  let allEntries = [];
+  let allClients = [];
+
+  async function init() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fDate').value = today;
+
+    const [entriesRes, clientsRes] = await Promise.all([
+      supabase.from('budget_entries').select('*, clients(name)').order('date', { ascending: false }),
+      supabase.from('clients').select('id, name').order('name')
+    ]);
+    allEntries = entriesRes.data || [];
+    allClients = clientsRes.data || [];
+
+    populateFilters();
+    renderBalanceCards(allEntries);
+    filterEntries();
+    renderMonthlyBreakdown(allEntries);
+  }
+
+  function populateFilters() {
+    const opts = allClients.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
+    document.getElementById('clientFilter').innerHTML = '<option value="">All Clients</option>' + opts;
+    document.getElementById('fClient').innerHTML = '<option value="">No client</option>' + opts;
+
+    const months = [...new Set(allEntries.map(e => e.date ? e.date.substring(0,7) : null).filter(Boolean))].sort().reverse();
+    document.getElementById('monthFilter').innerHTML = '<option value="">All Months</option>' +
+      months.map(m => `<option value="${m}">${fmtMonth(m)}</option>`).join('');
+  }
+
+  function renderBalanceCards(entries) {
+    const bdt_income  = entries.filter(e=>e.currency==='BDT'&&e.type==='income').reduce((s,e)=>s+ +e.amount,0);
+    const bdt_expense = entries.filter(e=>e.currency==='BDT'&&e.type==='expense').reduce((s,e)=>s+ +e.amount,0);
+    const usd_income  = entries.filter(e=>e.currency==='USD'&&e.type==='income').reduce((s,e)=>s+ +e.amount,0);
+    const usd_expense = entries.filter(e=>e.currency==='USD'&&e.type==='expense').reduce((s,e)=>s+ +e.amount,0);
+    const bdt_bal = bdt_income - bdt_expense;
+    const usd_bal = usd_income - usd_expense;
+
+    document.getElementById('balanceCards').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon ${bdt_bal>=0?'green':'red'}"><i data-lucide="bangladeshi-taka" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">BDT Balance</div>
+        <div class="stat-value" style="color:${bdt_bal>=0?'var(--success)':'var(--danger)'};">
+          ${bdt_bal>=0?'+':''}৳${Math.abs(bdt_bal).toLocaleString()}
+        </div>
+        <div class="stat-sub">Income ৳${bdt_income.toLocaleString()} · Expense ৳${bdt_expense.toLocaleString()}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon ${usd_bal>=0?'green':'red'}"><i data-lucide="dollar-sign" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">USD Balance</div>
+        <div class="stat-value" style="color:${usd_bal>=0?'var(--success)':'var(--danger)'};">
+          ${usd_bal>=0?'+':''}$${Math.abs(usd_bal).toLocaleString()}
+        </div>
+        <div class="stat-sub">Income $${usd_income.toLocaleString()} · Expense $${usd_expense.toLocaleString()}</div>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  function filterEntries() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const month = document.getElementById('monthFilter').value;
+    const clientId = document.getElementById('clientFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const currency = document.getElementById('currencyFilter').value;
+
+    const filtered = allEntries.filter(e => {
+      const matchQ = !q || (e.category||'').toLowerCase().includes(q) || (e.note||'').toLowerCase().includes(q);
+      const matchM = !month || (e.date||'').startsWith(month);
+      const matchC = !clientId || e.client_id === clientId;
+      const matchT = !type || e.type === type;
+      const matchCur = !currency || e.currency === currency;
+      return matchQ && matchM && matchC && matchT && matchCur;
+    });
+
+    renderTable(filtered);
+  }
+
+  function renderTable(entries) {
+    const tbody = document.getElementById('entriesTable');
+    if (!entries.length) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+        <i data-lucide="wallet" class="empty-icon"></i>
+        <p>No entries found.</p>
+      </div></td></tr>`;
+      lucide.createIcons();
+      return;
+    }
+    tbody.innerHTML = entries.map(e => `
+      <tr>
+        <td class="text-muted text-sm">${e.date || '—'}</td>
+        <td><span class="badge badge-${e.type}">${capitalize(e.type)}</span></td>
+        <td class="fw-600" style="color:${e.type==='income'?'var(--success)':'var(--danger)'};">
+          ${e.type==='income'?'+':'-'}${e.currency==='BDT'?'৳':'$'}${(+e.amount).toLocaleString()}
+        </td>
+        <td><span class="badge" style="background:var(--bg);color:var(--text-muted);">${e.currency}</span></td>
+        <td>${escHtml(e.category || '—')}</td>
+        <td class="text-muted">${e.clients ? escHtml(e.clients.name) : '—'}</td>
+        <td class="text-muted text-sm">${escHtml(e.note || '—')}</td>
+        <td>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" onclick="openModal(null, '${e.id}')">
+              <i data-lucide="pencil" style="width:14px;height:14px;"></i>
+            </button>
+            <button class="btn btn-danger btn-icon btn-sm" onclick="deleteEntry('${e.id}')">
+              <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    lucide.createIcons();
+  }
+
+  function renderMonthlyBreakdown(entries) {
+    const months = {};
+    entries.forEach(e => {
+      if (!e.date) return;
+      const m = e.date.substring(0,7);
+      if (!months[m]) months[m] = { bdt_in:0, bdt_ex:0, usd_in:0, usd_ex:0 };
+      if (e.currency === 'BDT') {
+        if (e.type === 'income') months[m].bdt_in += +e.amount;
+        else months[m].bdt_ex += +e.amount;
+      } else {
+        if (e.type === 'income') months[m].usd_in += +e.amount;
+        else months[m].usd_ex += +e.amount;
+      }
+    });
+
+    const sorted = Object.keys(months).sort().reverse();
+    if (!sorted.length) {
+      document.getElementById('monthlyBreakdown').innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13.5px;">No data yet.</div>`;
+      return;
+    }
+
+    document.getElementById('monthlyBreakdown').innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>BDT Income</th>
+              <th>BDT Expense</th>
+              <th>BDT Balance</th>
+              <th>USD Income</th>
+              <th>USD Expense</th>
+              <th>USD Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sorted.map(m => {
+              const d = months[m];
+              const bdt_bal = d.bdt_in - d.bdt_ex;
+              const usd_bal = d.usd_in - d.usd_ex;
+              return `<tr>
+                <td class="fw-600">${fmtMonth(m)}</td>
+                <td style="color:var(--success);">৳${d.bdt_in.toLocaleString()}</td>
+                <td style="color:var(--danger);">৳${d.bdt_ex.toLocaleString()}</td>
+                <td class="fw-600" style="color:${bdt_bal>=0?'var(--success)':'var(--danger)'};">${bdt_bal>=0?'+':''}৳${Math.abs(bdt_bal).toLocaleString()}</td>
+                <td style="color:var(--success);">$${d.usd_in.toLocaleString()}</td>
+                <td style="color:var(--danger);">$${d.usd_ex.toLocaleString()}</td>
+                <td class="fw-600" style="color:${usd_bal>=0?'var(--success)':'var(--danger)'};">${usd_bal>=0?'+':''}$${Math.abs(usd_bal).toLocaleString()}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ===== MODAL =====
+  function openModal(defaultType, id) {
+    const entry = id ? allEntries.find(e => e.id === id) : null;
+    document.getElementById('modalTitle').textContent = entry ? 'Edit Entry' : (defaultType === 'expense' ? 'Add Expense' : 'Add Income');
+    document.getElementById('fId').value = entry ? entry.id : '';
+    document.getElementById('fType').value = entry ? entry.type : (defaultType || 'income');
+    document.getElementById('fAmount').value = entry ? entry.amount : '';
+    document.getElementById('fCurrency').value = entry ? entry.currency : 'BDT';
+    document.getElementById('fCategory').value = entry ? (entry.category || '') : '';
+    document.getElementById('fDate').value = entry ? (entry.date || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0];
+    document.getElementById('fClient').value = entry ? (entry.client_id || '') : '';
+    document.getElementById('fNote').value = entry ? (entry.note || '') : '';
+    document.getElementById('modalOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('fAmount').focus(), 100);
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+
+  async function saveEntry(e) {
+    e && e.preventDefault();
+    const id = document.getElementById('fId').value;
+    const payload = {
+      type: document.getElementById('fType').value,
+      amount: parseFloat(document.getElementById('fAmount').value),
+      currency: document.getElementById('fCurrency').value,
+      category: document.getElementById('fCategory').value.trim() || null,
+      date: document.getElementById('fDate').value || null,
+      client_id: document.getElementById('fClient').value || null,
+      note: document.getElementById('fNote').value.trim() || null
+    };
+    if (!payload.amount || payload.amount <= 0) { toast('Enter a valid amount', 'error'); return; }
+
+    let error;
+    if (id) {
+      ({ error } = await supabase.from('budget_entries').update(payload).eq('id', id));
+    } else {
+      ({ error } = await supabase.from('budget_entries').insert(payload));
+    }
+    if (error) { toast('Failed to save entry', 'error'); return; }
+    toast(id ? 'Entry updated!' : 'Entry added!', 'success');
+    closeModal();
+    await init();
+  }
+
+  async function deleteEntry(id) {
+    if (!confirm('Delete this entry?')) return;
+    const { error } = await supabase.from('budget_entries').delete().eq('id', id);
+    if (error) { toast('Failed to delete', 'error'); return; }
+    toast('Entry deleted', 'success');
+    await init();
+  }
+
+  // ===== HELPERS =====
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function fmtMonth(m) {
+    if (!m) return '';
+    const [y, mo] = m.split('-');
+    return new Date(+y, +mo-1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+  function toast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<i data-lucide="${type==='success'?'check-circle':type==='error'?'alert-circle':'info'}" style="width:16px;height:16px;"></i> ${msg}`;
+    c.appendChild(t);
+    lucide.createIcons();
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  init();
+</script>
+</body>
+</html>
