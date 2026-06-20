@@ -212,14 +212,13 @@
   let allClients = [];
   let currentClientId = null;
 
-  // ===== LOAD =====
   async function loadClients() {
     const { data, error } = await supabase
       .from('clients')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) { toast('Failed to load clients', 'error'); return; }
+    if (error) { toast('Load failed: ' + error.message, 'error'); return; }
     allClients = data || [];
     renderStats();
     renderTable(allClients);
@@ -308,7 +307,6 @@
     renderTable(filtered);
   }
 
-  // ===== DETAIL =====
   async function openDetail(id) {
     currentClientId = id;
     const client = allClients.find(c => c.id === id);
@@ -403,11 +401,11 @@
       <div style="display:flex;gap:12px;margin-bottom:16px;">
         <div class="stat-card" style="flex:1;">
           <div class="stat-label">BDT Balance</div>
-          <div class="stat-value" style="font-size:20px;color:${total_bdt>=0?'var(--success)':'var(--danger)'};">${total_bdt>=0?'+':''}৳${Math.abs(total_bdt).toLocaleString()}</div>
+          <div class="stat-value" style="font-size:20px;color:${total_bdt>=0?'var(--success)':'var(--danger)'};"}>${total_bdt>=0?'+':''}৳${Math.abs(total_bdt).toLocaleString()}</div>
         </div>
         <div class="stat-card" style="flex:1;">
           <div class="stat-label">USD Balance</div>
-          <div class="stat-value" style="font-size:20px;color:${total_usd>=0?'var(--success)':'var(--danger)'};">${total_usd>=0?'+':''}$${Math.abs(total_usd).toLocaleString()}</div>
+          <div class="stat-value" style="font-size:20px;color:${total_usd>=0?'var(--success)':'var(--danger)'};"}>${total_usd>=0?'+':''}$${Math.abs(total_usd).toLocaleString()}</div>
         </div>
       </div>
       <div class="table-wrap"><table>
@@ -416,8 +414,7 @@
           <tr>
             <td class="text-muted text-sm">${e.date || '—'}</td>
             <td><span class="badge badge-${e.type}">${capitalize(e.type)}</span></td>
-            <td class="fw-600" style="color:${e.type==='income'?'var(--success)':'var(--danger)'};">
-              ${e.type==='income'?'+':'-'}${e.currency==='BDT'?'৳':'$'}${(+e.amount).toLocaleString()}
+            <td class="fw-600" style="color:${e.type==='income'?'var(--success)':'var(--danger)'};">              ${e.type==='income'?'+':'-'}${e.currency==='BDT'?'৳':'$'}${(+e.amount).toLocaleString()}
             </td>
             <td>${escHtml(e.category || '—')}</td>
             <td class="text-muted">${escHtml(e.note || '—')}</td>
@@ -442,9 +439,7 @@
     document.getElementById('tab' + capitalize(name)).classList.add('active');
   }
 
-  function editCurrentClient() {
-    openModal(currentClientId);
-  }
+  function editCurrentClient() { openModal(currentClientId); }
 
   async function deleteCurrentClient() {
     if (!confirm('Delete this client? This cannot be undone.')) return;
@@ -452,7 +447,6 @@
     closeDetail();
   }
 
-  // ===== MODAL =====
   function openModal(id) {
     const client = id ? allClients.find(c => c.id === id) : null;
     document.getElementById('modalTitle').textContent = client ? 'Edit Client' : 'Add Client';
@@ -491,7 +485,7 @@
       ({ error } = await supabase.from('clients').insert(payload));
     }
 
-    if (error) { toast('Failed to save client', 'error'); return; }
+    if (error) { toast('Save failed: ' + error.message, 'error'); return; }
     toast(id ? 'Client updated!' : 'Client added!', 'success');
     closeModal();
     await loadClients();
@@ -501,17 +495,14 @@
   async function deleteClient(id) {
     if (!confirm('Delete this client?')) return;
     const { error } = await supabase.from('clients').delete().eq('id', id);
-    if (error) { toast('Failed to delete', 'error'); return; }
+    if (error) { toast('Delete failed: ' + error.message, 'error'); return; }
     toast('Client deleted', 'success');
     allClients = allClients.filter(c => c.id !== id);
     renderStats();
     renderTable(allClients);
   }
 
-  // ===== HELPERS =====
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
   function fmtDate(d) {
     if (!d) return '—';
@@ -531,17 +522,32 @@
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
   }
 
-  // Close modal on overlay click
   document.getElementById('modalOverlay').addEventListener('click', e => {
     if (e.target === document.getElementById('modalOverlay')) closeModal();
   });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // Keyboard shortcuts
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-  });
-
+  checkConnection();
   loadClients();
 </script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <a href="index.html" class="mobile-nav-item">
+    <i data-lucide="layout-dashboard"></i><span>Home</span>
+  </a>
+  <a href="clients.html" class="mobile-nav-item active">
+    <i data-lucide="users"></i><span>Clients</span>
+  </a>
+  <a href="tasks.html" class="mobile-nav-item">
+    <i data-lucide="check-square"></i><span>Tasks</span>
+  </a>
+  <a href="notes.html" class="mobile-nav-item">
+    <i data-lucide="file-text"></i><span>Notes</span>
+  </a>
+  <a href="budget.html" class="mobile-nav-item">
+    <i data-lucide="wallet"></i><span>Budget</span>
+  </a>
+</nav>
 </body>
 </html>
