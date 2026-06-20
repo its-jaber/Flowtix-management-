@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasks — Flowtix Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon"><i data-lucide="zap" style="width:18px;height:18px;"></i></div>
+      <div>
+        <div class="logo-text">Flowtix</div>
+        <div class="logo-sub">Command Center</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu</div>
+    <a href="index.html" class="nav-link"><i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span></a>
+    <a href="clients.html" class="nav-link"><i data-lucide="users" class="nav-icon"></i><span>Clients</span></a>
+    <a href="tasks.html" class="nav-link active"><i data-lucide="check-square" class="nav-icon"></i><span>Tasks</span></a>
+    <a href="notes.html" class="nav-link"><i data-lucide="file-text" class="nav-icon"></i><span>Notes</span></a>
+    <a href="budget.html" class="nav-link"><i data-lucide="wallet" class="nav-icon"></i><span>Budget</span></a>
+  </nav>
+  <div class="sidebar-footer">Flowtix v1.0</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>Tasks</h1>
+      <div class="header-sub">Track your work and deadlines</div>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        <button id="btnKanban" class="active" onclick="setView('kanban')">
+          <i data-lucide="layout-grid" style="width:14px;height:14px;"></i> Kanban
+        </button>
+        <button id="btnList" onclick="setView('list')">
+          <i data-lucide="list" style="width:14px;height:14px;"></i> List
+        </button>
+      </div>
+      <button class="btn btn-primary" onclick="openModal()">
+        <i data-lucide="plus" style="width:15px;height:15px;"></i> Add Task
+      </button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="toolbar">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input class="form-control" type="text" id="searchInput" placeholder="Search tasks…" oninput="filterTasks()" />
+      </div>
+      <select class="filter-select" id="priorityFilter" onchange="filterTasks()">
+        <option value="">All Priorities</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <select class="filter-select" id="clientFilter" onchange="filterTasks()">
+        <option value="">All Clients</option>
+      </select>
+      <select class="filter-select" id="statusFilter" onchange="filterTasks()">
+        <option value="">All Statuses</option>
+        <option value="todo">Todo</option>
+        <option value="in_progress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+
+    <!-- KANBAN VIEW -->
+    <div id="kanbanView">
+      <div class="kanban-board">
+        <div class="kanban-column">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">
+              <span class="dot dot-todo"></span> Todo
+            </div>
+            <span class="kanban-col-count" id="countTodo">0</span>
+          </div>
+          <div class="kanban-cards" id="colTodo"></div>
+        </div>
+        <div class="kanban-column">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">
+              <span class="dot dot-in_progress"></span> In Progress
+            </div>
+            <span class="kanban-col-count" id="countInProgress">0</span>
+          </div>
+          <div class="kanban-cards" id="colInProgress"></div>
+        </div>
+        <div class="kanban-column">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">
+              <span class="dot dot-done"></span> Done
+            </div>
+            <span class="kanban-col-count" id="countDone">0</span>
+          </div>
+          <div class="kanban-cards" id="colDone"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="listView" style="display:none;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Due Date</th>
+              <th>Client</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tasksList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add Task</span>
+      <button class="modal-close" onclick="closeModal()">
+        <i data-lucide="x" style="width:18px;height:18px;"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="saveTask(event)">
+        <div class="form-group">
+          <label class="form-label">Title *</label>
+          <input class="form-control" type="text" id="fTitle" required placeholder="Task title…" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" id="fDesc" placeholder="Optional description…"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="fStatus">
+              <option value="todo">Todo</option>
+              <option value="in_progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select class="form-control" id="fPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input class="form-control" type="date" id="fDue" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client</label>
+            <select class="form-control" id="fClient">
+              <option value="">No client</option>
+            </select>
+          </div>
+        </div>
+        <input type="hidden" id="fId" />
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask(event)">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="config.js"></script>
+<script>
+  lucide.createIcons();
+
+  let allTasks = [];
+  let allClients = [];
+  let currentView = 'kanban';
+
+  async function init() {
+    const [tasksRes, clientsRes] = await Promise.all([
+      supabase.from('tasks').select('*, clients(name)').order('created_at', { ascending: false }),
+      supabase.from('clients').select('id, name').order('name')
+    ]);
+    allTasks = tasksRes.data || [];
+    allClients = clientsRes.data || [];
+
+    populateClientFilters();
+    filterTasks();
+  }
+
+  function populateClientFilters() {
+    const opts = allClients.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
+    document.getElementById('clientFilter').innerHTML = '<option value="">All Clients</option>' + opts;
+    document.getElementById('fClient').innerHTML = '<option value="">No client</option>' + opts;
+  }
+
+  function filterTasks() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const priority = document.getElementById('priorityFilter').value;
+    const clientId = document.getElementById('clientFilter').value;
+    const status = document.getElementById('statusFilter').value;
+
+    const filtered = allTasks.filter(t => {
+      const matchQ = !q || t.title.toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q);
+      const matchP = !priority || t.priority === priority;
+      const matchC = !clientId || t.client_id === clientId;
+      const matchS = !status || t.status === status;
+      return matchQ && matchP && matchC && matchS;
+    });
+
+    if (currentView === 'kanban') renderKanban(filtered);
+    else renderList(filtered);
+  }
+
+  function setView(v) {
+    currentView = v;
+    document.getElementById('kanbanView').style.display = v === 'kanban' ? '' : 'none';
+    document.getElementById('listView').style.display = v === 'list' ? '' : 'none';
+    document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
+    document.getElementById('btnList').classList.toggle('active', v === 'list');
+    filterTasks();
+  }
+
+  function renderKanban(tasks) {
+    const cols = { todo: [], in_progress: [], done: [] };
+    tasks.forEach(t => cols[t.status] && cols[t.status].push(t));
+
+    renderCol('colTodo', 'countTodo', cols.todo);
+    renderCol('colInProgress', 'countInProgress', cols.in_progress);
+    renderCol('colDone', 'countDone', cols.done);
+  }
+
+  function renderCol(colId, countId, tasks) {
+    document.getElementById(countId).textContent = tasks.length;
+    const el = document.getElementById(colId);
+    if (!tasks.length) {
+      el.innerHTML = `<div style="text-align:center;padding:24px 12px;color:var(--text-light);font-size:13px;">No tasks</div>`;
+      return;
+    }
+    el.innerHTML = tasks.map(t => `
+      <div class="task-card" onclick="openModal('${t.id}')">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+          <div class="task-card-title" style="margin-bottom:0;">${escHtml(t.title)}</div>
+          <span class="badge badge-${t.priority}" style="flex-shrink:0;">${capitalize(t.priority)}</span>
+        </div>
+        ${t.description ? `<div style="font-size:12.5px;color:var(--text-muted);margin-bottom:8px;">${escHtml(t.description.substring(0,80))}${t.description.length>80?'…':''}</div>` : ''}
+        <div class="task-card-meta">
+          ${t.due_date ? `<span class="meta-item ${isOverdue(t.due_date, t.status) ? 'overdue' : ''}">
+            <i data-lucide="calendar" style="width:11px;height:11px;"></i> ${t.due_date}
+          </span>` : ''}
+          ${t.clients ? `<span class="meta-item">
+            <i data-lucide="user" style="width:11px;height:11px;"></i> ${escHtml(t.clients.name)}
+          </span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px;" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="openModal('${t.id}')">
+            <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+          </button>
+          <button class="btn btn-danger btn-icon btn-sm" onclick="deleteTask('${t.id}')">
+            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+    lucide.createIcons();
+  }
+
+  function renderList(tasks) {
+    const tbody = document.getElementById('tasksList');
+    if (!tasks.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+        <i data-lucide="check-square" class="empty-icon"></i>
+        <p>No tasks found.</p>
+        <button class="btn btn-primary btn-sm" onclick="openModal()">Add Task</button>
+      </div></td></tr>`;
+      lucide.createIcons();
+      return;
+    }
+    tbody.innerHTML = tasks.map(t => `
+      <tr>
+        <td>
+          <div class="fw-600">${escHtml(t.title)}</div>
+          ${t.description ? `<div class="text-sm text-muted">${escHtml(t.description.substring(0,60))}${t.description.length>60?'…':''}</div>` : ''}
+        </td>
+        <td><span class="badge badge-${t.status}">${t.status.replace('_',' ')}</span></td>
+        <td><span class="badge badge-${t.priority}">${capitalize(t.priority)}</span></td>
+        <td class="${isOverdue(t.due_date, t.status) ? 'overdue' : 'text-muted'}">${t.due_date || '—'}</td>
+        <td class="text-muted">${t.clients ? escHtml(t.clients.name) : '—'}</td>
+        <td>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" onclick="openModal('${t.id}')">
+              <i data-lucide="pencil" style="width:14px;height:14px;"></i>
+            </button>
+            <button class="btn btn-danger btn-icon btn-sm" onclick="deleteTask('${t.id}')">
+              <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    lucide.createIcons();
+  }
+
+  // ===== MODAL =====
+  function openModal(id) {
+    const task = id ? allTasks.find(t => t.id === id) : null;
+    document.getElementById('modalTitle').textContent = task ? 'Edit Task' : 'Add Task';
+    document.getElementById('fId').value = task ? task.id : '';
+    document.getElementById('fTitle').value = task ? task.title : '';
+    document.getElementById('fDesc').value = task ? (task.description || '') : '';
+    document.getElementById('fStatus').value = task ? task.status : 'todo';
+    document.getElementById('fPriority').value = task ? task.priority : 'medium';
+    document.getElementById('fDue').value = task ? (task.due_date || '') : '';
+    document.getElementById('fClient').value = task ? (task.client_id || '') : '';
+    document.getElementById('modalOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('fTitle').focus(), 100);
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+
+  async function saveTask(e) {
+    e && e.preventDefault();
+    const id = document.getElementById('fId').value;
+    const payload = {
+      title: document.getElementById('fTitle').value.trim(),
+      description: document.getElementById('fDesc').value.trim() || null,
+      status: document.getElementById('fStatus').value,
+      priority: document.getElementById('fPriority').value,
+      due_date: document.getElementById('fDue').value || null,
+      client_id: document.getElementById('fClient').value || null
+    };
+    if (!payload.title) { toast('Title is required', 'error'); return; }
+
+    let error;
+    if (id) {
+      ({ error } = await supabase.from('tasks').update(payload).eq('id', id));
+    } else {
+      ({ error } = await supabase.from('tasks').insert(payload));
+    }
+    if (error) { toast('Failed to save task', 'error'); return; }
+    toast(id ? 'Task updated!' : 'Task created!', 'success');
+    closeModal();
+    await init();
+  }
+
+  async function deleteTask(id) {
+    if (!confirm('Delete this task?')) return;
+    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    if (error) { toast('Failed to delete', 'error'); return; }
+    toast('Task deleted', 'success');
+    await init();
+  }
+
+  // ===== HELPERS =====
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function isOverdue(due, status) {
+    if (!due || status === 'done') return false;
+    return new Date(due) < new Date(new Date().toDateString());
+  }
+  function toast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<i data-lucide="${type==='success'?'check-circle':type==='error'?'alert-circle':'info'}" style="width:16px;height:16px;"></i> ${msg}`;
+    c.appendChild(t);
+    lucide.createIcons();
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  init();
+</script>
+</body>
+</html>

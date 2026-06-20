@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Flowtix Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .pinned-note {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: var(--radius-sm);
+      background: var(--primary-light);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .pinned-note:hover { background: #e0e7ff; }
+    .pinned-note-title { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .pinned-note-preview { font-size: 12.5px; color: var(--text-muted); }
+    .task-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-light);
+      gap: 10px;
+    }
+    .task-row:last-child { border-bottom: none; }
+    .client-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .client-row:last-child { border-bottom: none; }
+    @media (max-width: 900px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon"><i data-lucide="zap" style="width:18px;height:18px;"></i></div>
+      <div>
+        <div class="logo-text">Flowtix</div>
+        <div class="logo-sub">Command Center</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu</div>
+    <a href="index.html" class="nav-link active"><i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span></a>
+    <a href="clients.html" class="nav-link"><i data-lucide="users" class="nav-icon"></i><span>Clients</span></a>
+    <a href="tasks.html" class="nav-link"><i data-lucide="check-square" class="nav-icon"></i><span>Tasks</span></a>
+    <a href="notes.html" class="nav-link"><i data-lucide="file-text" class="nav-icon"></i><span>Notes</span></a>
+    <a href="budget.html" class="nav-link"><i data-lucide="wallet" class="nav-icon"></i><span>Budget</span></a>
+  </nav>
+  <div class="sidebar-footer">Flowtix v1.0</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <div class="header-sub" id="dateLabel"></div>
+    </div>
+    <div class="header-actions">
+      <a href="tasks.html" class="btn btn-primary">
+        <i data-lucide="plus" style="width:15px;height:15px;"></i> New Task
+      </a>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card" style="opacity:.4;">
+        <div class="stat-icon indigo"><i data-lucide="users" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">Loading…</div>
+        <div class="stat-value">—</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD GRID -->
+    <div class="dashboard-grid">
+
+      <!-- URGENT TASKS -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="alert-circle" style="width:15px;height:15px;color:var(--danger);vertical-align:-2px;"></i>
+            Overdue &amp; Due Today
+          </span>
+          <a href="tasks.html" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        <div class="card-body" id="urgentTasks" style="padding:8px 16px;">
+          <div style="color:var(--text-muted);font-size:13.5px;padding:12px 0;">Loading…</div>
+        </div>
+      </div>
+
+      <!-- PINNED NOTES -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="pin" style="width:15px;height:15px;color:var(--primary);vertical-align:-2px;"></i>
+            Pinned Notes
+          </span>
+          <a href="notes.html" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        <div class="card-body" id="pinnedNotes" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="color:var(--text-muted);font-size:13.5px;">Loading…</div>
+        </div>
+      </div>
+
+      <!-- CLIENT STATUS BREAKDOWN -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Clients by Status</span>
+          <a href="clients.html" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        <div class="card-body" id="clientStatus">
+          <div style="color:var(--text-muted);font-size:13.5px;">Loading…</div>
+        </div>
+      </div>
+
+      <!-- RECENT BUDGET ENTRIES -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Transactions</span>
+          <a href="budget.html" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        <div class="card-body" id="recentBudget" style="padding:8px 16px;">
+          <div style="color:var(--text-muted);font-size:13.5px;padding:12px 0;">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="config.js"></script>
+<script>
+  lucide.createIcons();
+
+  // Date label
+  document.getElementById('dateLabel').textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  async function loadDashboard() {
+    const today = new Date().toISOString().split('T')[0];
+
+    const [clientsRes, tasksRes, notesRes, budgetRes] = await Promise.all([
+      supabase.from('clients').select('id, name, status'),
+      supabase.from('tasks').select('*, clients(name)').neq('status', 'done').order('due_date'),
+      supabase.from('notes').select('id, title, content, pinned, updated_at').eq('pinned', true).order('updated_at', { ascending: false }).limit(5),
+      supabase.from('budget_entries').select('*').order('date', { ascending: false }).limit(8)
+    ]);
+
+    const clients = clientsRes.data || [];
+    const tasks   = tasksRes.data || [];
+    const notes   = notesRes.data || [];
+    const budget  = budgetRes.data || [];
+
+    renderStats(clients, tasks, budget, today);
+    renderUrgentTasks(tasks, today);
+    renderPinnedNotes(notes);
+    renderClientStatus(clients);
+    renderRecentBudget(budget);
+  }
+
+  function renderStats(clients, tasks, budget, today) {
+    const counts = {};
+    clients.forEach(c => counts[c.status] = (counts[c.status]||0)+1);
+
+    const overdue   = tasks.filter(t => t.due_date && t.due_date < today).length;
+    const dueToday  = tasks.filter(t => t.due_date === today).length;
+
+    const bdt_bal = budget.filter(e=>e.currency==='BDT').reduce((s,e)=>s+(e.type==='income'?+e.amount:-+e.amount),0);
+    const usd_bal = budget.filter(e=>e.currency==='USD').reduce((s,e)=>s+(e.type==='income'?+e.amount:-+e.amount),0);
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon blue"><i data-lucide="users" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">Total Clients</div>
+        <div class="stat-value">${clients.length}</div>
+        <div class="stat-sub">Active: ${counts.active||0} · Prospects: ${counts.prospect||0}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i data-lucide="alert-triangle" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">Overdue Tasks</div>
+        <div class="stat-value" style="color:var(--danger);">${overdue}</div>
+        <div class="stat-sub">Due today: ${dueToday}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i data-lucide="trending-up" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">BDT Balance</div>
+        <div class="stat-value" style="font-size:20px;color:${bdt_bal>=0?'var(--success)':'var(--danger)'};">
+          ${bdt_bal>=0?'+':''}৳${Math.abs(bdt_bal).toLocaleString()}
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon indigo"><i data-lucide="dollar-sign" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">USD Balance</div>
+        <div class="stat-value" style="font-size:20px;color:${usd_bal>=0?'var(--success)':'var(--danger)'};">
+          ${usd_bal>=0?'+':''}$${Math.abs(usd_bal).toLocaleString()}
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  function renderUrgentTasks(tasks, today) {
+    const urgent = tasks.filter(t => t.due_date && (t.due_date <= today)).slice(0, 8);
+    const el = document.getElementById('urgentTasks');
+    if (!urgent.length) {
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);">
+        <i data-lucide="check-circle" style="width:28px;height:28px;color:var(--success);display:block;margin:0 auto 8px;"></i>
+        All caught up! No overdue tasks.
+      </div>`;
+      lucide.createIcons();
+      return;
+    }
+    el.innerHTML = urgent.map(t => {
+      const isOD = t.due_date < today;
+      return `<div class="task-row">
+        <div style="flex:1;min-width:0;">
+          <div class="fw-600" style="font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.title)}</div>
+          ${t.clients ? `<div class="text-sm text-muted">${escHtml(t.clients.name)}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+          <span class="badge badge-${t.priority}">${capitalize(t.priority)}</span>
+          <span style="font-size:12px;font-weight:600;color:${isOD?'var(--danger)':'var(--warning)'};">
+            ${isOD ? 'Overdue' : 'Today'}: ${t.due_date}
+          </span>
+        </div>
+      </div>`;
+    }).join('');
+    lucide.createIcons();
+  }
+
+  function renderPinnedNotes(notes) {
+    const el = document.getElementById('pinnedNotes');
+    if (!notes.length) {
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);">
+        No pinned notes. Pin important notes to see them here.
+      </div>`;
+      return;
+    }
+    el.innerHTML = notes.map(n => `
+      <a href="notes.html" class="pinned-note" style="text-decoration:none;">
+        <div class="pinned-note-title">${escHtml(n.title || 'Untitled')}</div>
+        <div class="pinned-note-preview">${escHtml((n.content || '').substring(0,80))}${(n.content||'').length>80?'…':''}</div>
+      </a>
+    `).join('');
+  }
+
+  function renderClientStatus(clients) {
+    const counts = { prospect: 0, active: 0, completed: 0, lost: 0 };
+    clients.forEach(c => counts[c.status] = (counts[c.status]||0)+1);
+    const total = clients.length || 1;
+
+    const bars = [
+      { key: 'active',    label: 'Active',    color: 'var(--success)', cls: 'active' },
+      { key: 'prospect',  label: 'Prospect',  color: 'var(--info)',    cls: 'prospect' },
+      { key: 'completed', label: 'Completed', color: 'var(--text-muted)', cls: 'completed' },
+      { key: 'lost',      label: 'Lost',      color: 'var(--danger)',  cls: 'lost' },
+    ];
+
+    document.getElementById('clientStatus').innerHTML = bars.map(b => `
+      <div class="client-row">
+        <span class="dot dot-${b.cls}"></span>
+        <span style="flex:1;font-size:13.5px;font-weight:500;">${b.label}</span>
+        <div style="width:100px;height:6px;background:var(--bg);border-radius:100px;overflow:hidden;">
+          <div style="width:${Math.round(counts[b.key]/total*100)}%;height:100%;background:${b.color};border-radius:100px;transition:width .5s ease;"></div>
+        </div>
+        <span class="fw-600" style="font-size:13.5px;min-width:20px;text-align:right;">${counts[b.key]}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderRecentBudget(entries) {
+    const el = document.getElementById('recentBudget');
+    if (!entries.length) {
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);">No transactions yet.</div>`;
+      return;
+    }
+    el.innerHTML = entries.map(e => `
+      <div class="task-row">
+        <div>
+          <div class="fw-600" style="font-size:13.5px;">${escHtml(e.category || capitalize(e.type))}</div>
+          <div class="text-sm text-muted">${e.date || '—'}</div>
+        </div>
+        <span style="font-size:14px;font-weight:700;color:${e.type==='income'?'var(--success)':'var(--danger)'};">
+          ${e.type==='income'?'+':'-'}${e.currency==='BDT'?'৳':'$'}${(+e.amount).toLocaleString()}
+        </span>
+      </div>
+    `).join('');
+  }
+
+  // ===== HELPERS =====
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+  loadDashboard();
+</script>
+</body>
+</html>

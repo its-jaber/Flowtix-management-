@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clients — Flowtix Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">
+        <i data-lucide="zap" style="width:18px;height:18px;"></i>
+      </div>
+      <div>
+        <div class="logo-text">Flowtix</div>
+        <div class="logo-sub">Command Center</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu</div>
+    <a href="index.html" class="nav-link">
+      <i data-lucide="layout-dashboard" class="nav-icon"></i><span>Dashboard</span>
+    </a>
+    <a href="clients.html" class="nav-link active">
+      <i data-lucide="users" class="nav-icon"></i><span>Clients</span>
+    </a>
+    <a href="tasks.html" class="nav-link">
+      <i data-lucide="check-square" class="nav-icon"></i><span>Tasks</span>
+    </a>
+    <a href="notes.html" class="nav-link">
+      <i data-lucide="file-text" class="nav-icon"></i><span>Notes</span>
+    </a>
+    <a href="budget.html" class="nav-link">
+      <i data-lucide="wallet" class="nav-icon"></i><span>Budget</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">Flowtix v1.0</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h1>Clients</h1>
+      <div class="header-sub">Manage your client relationships</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="openModal()">
+        <i data-lucide="plus" style="width:15px;height:15px;"></i> Add Client
+      </button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- CLIENTS LIST VIEW -->
+    <div id="clientsListView">
+      <div class="toolbar">
+        <div class="search-box">
+          <i data-lucide="search" class="search-icon"></i>
+          <input class="form-control" type="text" id="searchInput" placeholder="Search clients…" oninput="filterClients()" />
+        </div>
+        <select class="filter-select" id="statusFilter" onchange="filterClients()">
+          <option value="">All Statuses</option>
+          <option value="prospect">Prospect</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="lost">Lost</option>
+        </select>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="clientStats"></div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Business</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Added</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="clientsTable">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div id="detailView" class="detail-view">
+      <div class="detail-header">
+        <button class="btn btn-secondary btn-sm" onclick="closeDetail()">
+          <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back
+        </button>
+        <div class="client-avatar" id="detailAvatar"></div>
+        <div>
+          <div style="font-size:18px;font-weight:700;" id="detailName"></div>
+          <div style="font-size:13px;color:var(--text-muted);" id="detailBusiness"></div>
+        </div>
+        <span id="detailStatus" class="badge" style="margin-left:auto;"></span>
+        <button class="btn btn-secondary btn-sm" onclick="editCurrentClient()">
+          <i data-lucide="pencil" style="width:14px;height:14px;"></i> Edit
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCurrentClient()">
+          <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+        </button>
+      </div>
+
+      <!-- Client Info Cards -->
+      <div class="two-col" style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Contact Info</span></div>
+          <div class="card-body" id="detailContactInfo"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Notes</span></div>
+          <div class="card-body" id="detailNotes" style="color:var(--text-muted);font-size:13.5px;"></div>
+        </div>
+      </div>
+
+      <div class="detail-tabs">
+        <button class="detail-tab active" onclick="switchTab('tasks')">Tasks</button>
+        <button class="detail-tab" onclick="switchTab('notes')">Notes</button>
+        <button class="detail-tab" onclick="switchTab('budget')">Budget</button>
+      </div>
+
+      <div id="tabTasks" class="tab-panel active"></div>
+      <div id="tabNotes" class="tab-panel"></div>
+      <div id="tabBudget" class="tab-panel"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add Client</span>
+      <button class="modal-close" onclick="closeModal()">
+        <i data-lucide="x" style="width:18px;height:18px;"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="clientForm" onsubmit="saveClient(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Name *</label>
+            <input class="form-control" type="text" id="fName" required placeholder="Full name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Business Name</label>
+            <input class="form-control" type="text" id="fBusiness" placeholder="Company name" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-control" type="email" id="fEmail" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input class="form-control" type="text" id="fPhone" placeholder="+880..." />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="fStatus">
+            <option value="prospect">Prospect</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="lost">Lost</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" id="fNotes" placeholder="Any notes about this client…"></textarea>
+        </div>
+        <input type="hidden" id="fId" />
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClient(event)">Save Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="config.js"></script>
+<script>
+  lucide.createIcons();
+
+  let allClients = [];
+  let currentClientId = null;
+
+  // ===== LOAD =====
+  async function loadClients() {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) { toast('Failed to load clients', 'error'); return; }
+    allClients = data || [];
+    renderStats();
+    renderTable(allClients);
+  }
+
+  function renderStats() {
+    const counts = { prospect: 0, active: 0, completed: 0, lost: 0 };
+    allClients.forEach(c => counts[c.status] = (counts[c.status] || 0) + 1);
+    document.getElementById('clientStats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon blue"><i data-lucide="users" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">Total Clients</div>
+        <div class="stat-value">${allClients.length}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i data-lucide="user-check" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">Active</div>
+        <div class="stat-value">${counts.active}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon indigo"><i data-lucide="user-plus" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">Prospects</div>
+        <div class="stat-value">${counts.prospect}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow"><i data-lucide="user-x" style="width:18px;height:18px;"></i></div>
+        <div class="stat-label">Completed / Lost</div>
+        <div class="stat-value">${counts.completed + counts.lost}</div>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  function renderTable(clients) {
+    const tbody = document.getElementById('clientsTable');
+    if (!clients.length) {
+      tbody.innerHTML = `<tr><td colspan="7">
+        <div class="empty-state">
+          <i data-lucide="users" class="empty-icon"></i>
+          <p>No clients yet. Add your first client!</p>
+        </div>
+      </td></tr>`;
+      lucide.createIcons();
+      return;
+    }
+    tbody.innerHTML = clients.map(c => `
+      <tr style="cursor:pointer;" onclick="openDetail('${c.id}')">
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">
+              ${c.name.charAt(0).toUpperCase()}
+            </div>
+            <span class="fw-600">${escHtml(c.name)}</span>
+          </div>
+        </td>
+        <td>${escHtml(c.business_name || '—')}</td>
+        <td>${escHtml(c.email || '—')}</td>
+        <td>${escHtml(c.phone || '—')}</td>
+        <td><span class="badge badge-${c.status}">${capitalize(c.status)}</span></td>
+        <td class="text-muted text-sm">${fmtDate(c.created_at)}</td>
+        <td onclick="event.stopPropagation()">
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" title="Edit" onclick="openModal('${c.id}')">
+              <i data-lucide="pencil" style="width:14px;height:14px;"></i>
+            </button>
+            <button class="btn btn-danger btn-icon btn-sm" title="Delete" onclick="deleteClient('${c.id}')">
+              <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    lucide.createIcons();
+  }
+
+  function filterClients() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const filtered = allClients.filter(c => {
+      const matchQ = !q || c.name.toLowerCase().includes(q) ||
+        (c.business_name || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q);
+      const matchS = !status || c.status === status;
+      return matchQ && matchS;
+    });
+    renderTable(filtered);
+  }
+
+  // ===== DETAIL =====
+  async function openDetail(id) {
+    currentClientId = id;
+    const client = allClients.find(c => c.id === id);
+    if (!client) return;
+
+    document.getElementById('clientsListView').style.display = 'none';
+    document.getElementById('detailView').classList.add('show');
+
+    document.getElementById('detailAvatar').textContent = client.name.charAt(0).toUpperCase();
+    document.getElementById('detailName').textContent = client.name;
+    document.getElementById('detailBusiness').textContent = client.business_name || 'No business name';
+    document.getElementById('detailStatus').className = `badge badge-${client.status}`;
+    document.getElementById('detailStatus').textContent = capitalize(client.status);
+    document.getElementById('detailNotes').textContent = client.notes || 'No notes added.';
+
+    document.getElementById('detailContactInfo').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13.5px;">
+          <i data-lucide="mail" style="width:15px;height:15px;color:var(--text-muted);"></i>
+          <span>${escHtml(client.email || 'No email')}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13.5px;">
+          <i data-lucide="phone" style="width:15px;height:15px;color:var(--text-muted);"></i>
+          <span>${escHtml(client.phone || 'No phone')}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13.5px;">
+          <i data-lucide="calendar" style="width:15px;height:15px;color:var(--text-muted);"></i>
+          <span>Added ${fmtDate(client.created_at)}</span>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+    loadDetailTabs(id);
+  }
+
+  async function loadDetailTabs(clientId) {
+    const [tasks, notes, budget] = await Promise.all([
+      supabase.from('tasks').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+      supabase.from('notes').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+      supabase.from('budget_entries').select('*').eq('client_id', clientId).order('date', { ascending: false })
+    ]);
+
+    renderDetailTasks(tasks.data || []);
+    renderDetailNotes(notes.data || []);
+    renderDetailBudget(budget.data || []);
+  }
+
+  function renderDetailTasks(tasks) {
+    const el = document.getElementById('tabTasks');
+    if (!tasks.length) {
+      el.innerHTML = `<div class="empty-state"><p>No tasks linked to this client.</p></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>Title</th><th>Status</th><th>Priority</th><th>Due Date</th></tr></thead>
+      <tbody>${tasks.map(t => `
+        <tr>
+          <td class="fw-600">${escHtml(t.title)}</td>
+          <td><span class="badge badge-${t.status}">${t.status.replace('_',' ')}</span></td>
+          <td><span class="badge badge-${t.priority}">${capitalize(t.priority)}</span></td>
+          <td class="${isOverdue(t.due_date, t.status) ? 'overdue' : 'text-muted'}">${t.due_date || '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`;
+  }
+
+  function renderDetailNotes(notes) {
+    const el = document.getElementById('tabNotes');
+    if (!notes.length) {
+      el.innerHTML = `<div class="empty-state"><p>No notes linked to this client.</p></div>`;
+      return;
+    }
+    el.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px;">
+      ${notes.map(n => `
+        <div class="card" style="padding:16px;">
+          <div style="font-weight:600;margin-bottom:6px;">${escHtml(n.title || 'Untitled')}</div>
+          <div style="font-size:13px;color:var(--text-muted);">${escHtml((n.content || '').substring(0,200))}${(n.content||'').length > 200 ? '…' : ''}</div>
+          <div style="margin-top:8px;font-size:11.5px;color:var(--text-light);">${fmtDate(n.updated_at)}</div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  function renderDetailBudget(entries) {
+    const el = document.getElementById('tabBudget');
+    if (!entries.length) {
+      el.innerHTML = `<div class="empty-state"><p>No budget entries linked to this client.</p></div>`;
+      return;
+    }
+    const total_bdt = entries.filter(e=>e.currency==='BDT').reduce((s,e)=>s+(e.type==='income'?+e.amount:-e.amount),0);
+    const total_usd = entries.filter(e=>e.currency==='USD').reduce((s,e)=>s+(e.type==='income'?+e.amount:-e.amount),0);
+    el.innerHTML = `
+      <div style="display:flex;gap:12px;margin-bottom:16px;">
+        <div class="stat-card" style="flex:1;">
+          <div class="stat-label">BDT Balance</div>
+          <div class="stat-value" style="font-size:20px;color:${total_bdt>=0?'var(--success)':'var(--danger)'};">${total_bdt>=0?'+':''}৳${Math.abs(total_bdt).toLocaleString()}</div>
+        </div>
+        <div class="stat-card" style="flex:1;">
+          <div class="stat-label">USD Balance</div>
+          <div class="stat-value" style="font-size:20px;color:${total_usd>=0?'var(--success)':'var(--danger)'};">${total_usd>=0?'+':''}$${Math.abs(total_usd).toLocaleString()}</div>
+        </div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Category</th><th>Note</th></tr></thead>
+        <tbody>${entries.map(e=>`
+          <tr>
+            <td class="text-muted text-sm">${e.date || '—'}</td>
+            <td><span class="badge badge-${e.type}">${capitalize(e.type)}</span></td>
+            <td class="fw-600" style="color:${e.type==='income'?'var(--success)':'var(--danger)'};">
+              ${e.type==='income'?'+':'-'}${e.currency==='BDT'?'৳':'$'}${(+e.amount).toLocaleString()}
+            </td>
+            <td>${escHtml(e.category || '—')}</td>
+            <td class="text-muted">${escHtml(e.note || '—')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`;
+  }
+
+  function closeDetail() {
+    currentClientId = null;
+    document.getElementById('detailView').classList.remove('show');
+    document.getElementById('clientsListView').style.display = '';
+    switchTab('tasks');
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.detail-tab').forEach((btn, i) => {
+      const names = ['tasks','notes','budget'];
+      btn.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab' + capitalize(name)).classList.add('active');
+  }
+
+  function editCurrentClient() {
+    openModal(currentClientId);
+  }
+
+  async function deleteCurrentClient() {
+    if (!confirm('Delete this client? This cannot be undone.')) return;
+    await deleteClient(currentClientId);
+    closeDetail();
+  }
+
+  // ===== MODAL =====
+  function openModal(id) {
+    const client = id ? allClients.find(c => c.id === id) : null;
+    document.getElementById('modalTitle').textContent = client ? 'Edit Client' : 'Add Client';
+    document.getElementById('fId').value = client ? client.id : '';
+    document.getElementById('fName').value = client ? client.name : '';
+    document.getElementById('fBusiness').value = client ? (client.business_name || '') : '';
+    document.getElementById('fEmail').value = client ? (client.email || '') : '';
+    document.getElementById('fPhone').value = client ? (client.phone || '') : '';
+    document.getElementById('fStatus').value = client ? client.status : 'prospect';
+    document.getElementById('fNotes').value = client ? (client.notes || '') : '';
+    document.getElementById('modalOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('fName').focus(), 100);
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+
+  async function saveClient(e) {
+    e && e.preventDefault();
+    const id = document.getElementById('fId').value;
+    const payload = {
+      name: document.getElementById('fName').value.trim(),
+      business_name: document.getElementById('fBusiness').value.trim() || null,
+      email: document.getElementById('fEmail').value.trim() || null,
+      phone: document.getElementById('fPhone').value.trim() || null,
+      status: document.getElementById('fStatus').value,
+      notes: document.getElementById('fNotes').value.trim() || null
+    };
+    if (!payload.name) { toast('Name is required', 'error'); return; }
+
+    let error;
+    if (id) {
+      ({ error } = await supabase.from('clients').update(payload).eq('id', id));
+    } else {
+      ({ error } = await supabase.from('clients').insert(payload));
+    }
+
+    if (error) { toast('Failed to save client', 'error'); return; }
+    toast(id ? 'Client updated!' : 'Client added!', 'success');
+    closeModal();
+    await loadClients();
+    if (id && currentClientId === id) openDetail(id);
+  }
+
+  async function deleteClient(id) {
+    if (!confirm('Delete this client?')) return;
+    const { error } = await supabase.from('clients').delete().eq('id', id);
+    if (error) { toast('Failed to delete', 'error'); return; }
+    toast('Client deleted', 'success');
+    allClients = allClients.filter(c => c.id !== id);
+    renderStats();
+    renderTable(allClients);
+  }
+
+  // ===== HELPERS =====
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  }
+  function isOverdue(due, status) {
+    if (!due || status === 'done') return false;
+    return new Date(due) < new Date(new Date().toDateString());
+  }
+  function toast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<i data-lucide="${type==='success'?'check-circle':type==='error'?'alert-circle':'info'}" style="width:16px;height:16px;"></i> ${msg}`;
+    c.appendChild(t);
+    lucide.createIcons();
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, 3000);
+  }
+
+  // Close modal on overlay click
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  loadClients();
+</script>
+</body>
+</html>
